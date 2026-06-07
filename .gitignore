@@ -1,0 +1,14 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+*.egg-info/
+
+# Env / secrets
+.env
+
+# Runtime output
+outputs/
+eval/results/_apps/

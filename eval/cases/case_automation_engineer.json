@@ -1,0 +1,12 @@
+{
+  "id": "ai_automation_engineer",
+  "resume_path": "data/resume.md",
+  "job_description": "AI Automation Engineer at FlowOps. Build agentic automation with n8n and Python. Connect LLMs to Slack and internal REST APIs. Add lightweight evaluation so automations stay reliable.",
+  "expectations": {
+    "required_keywords": ["automation", "n8n", "Python", "LLM", "API"],
+    "forbidden_claims": ["PhD", "Amazon", "10 years of experience"],
+    "must_include_sections": ["tailored_resume", "cover_letter", "role_matches"],
+    "min_role_matches": 1,
+    "coverage_threshold": 0.7
+  }
+}

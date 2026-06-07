@@ -1,0 +1,14 @@
+AI Automation Engineer at FlowOps
+
+We automate internal operations with LLMs and want an engineer who can wire them together.
+
+You will:
+- Build agentic automation with n8n and Python
+- Connect LLMs to Slack, Notion, and internal REST APIs
+- Add lightweight evaluation so automations stay reliable
+
+Requirements:
+- Comfortable in Python
+- Experience with automation (n8n or similar) and APIs
+- Familiarity with LLMs
+- Bonus: you measure and monitor what you ship

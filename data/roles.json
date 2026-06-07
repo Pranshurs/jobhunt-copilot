@@ -1,0 +1,92 @@
+[
+  {
+    "id": "role-001",
+    "title": "AI Engineer (LLM / RAG)",
+    "company": "Acme AI",
+    "location": "Bangalore, India (Hybrid)",
+    "tags": ["llm", "rag", "python", "fastapi", "embeddings", "evaluation", "docker"],
+    "url": "https://example.com/jobs/role-001",
+    "snippet": "Build retrieval-augmented LLM features and measure their quality."
+  },
+  {
+    "id": "role-002",
+    "title": "Applied AI Engineer (Agents)",
+    "company": "Northstar Labs",
+    "location": "Remote (India)",
+    "tags": ["agents", "agentic", "llm", "evaluation", "python", "rag"],
+    "url": "https://example.com/jobs/role-002",
+    "snippet": "Design tool-using agents and the evals that keep them honest."
+  },
+  {
+    "id": "role-003",
+    "title": "AI Automation Engineer",
+    "company": "FlowOps",
+    "location": "Remote",
+    "tags": ["n8n", "automation", "python", "llm", "api", "slack"],
+    "url": "https://example.com/jobs/role-003",
+    "snippet": "Wire LLMs into automated workflows across Slack, Notion, and internal APIs."
+  },
+  {
+    "id": "role-004",
+    "title": "Forward-Deployed Engineer",
+    "company": "Vector Systems",
+    "location": "Gurgaon, India",
+    "tags": ["python", "fastapi", "llm", "rag", "docker", "api"],
+    "url": "https://example.com/jobs/role-004",
+    "snippet": "Ship customer-facing AI integrations and own them end to end."
+  },
+  {
+    "id": "role-005",
+    "title": "Machine Learning Engineer",
+    "company": "DeepField",
+    "location": "Bangalore, India",
+    "tags": ["machine learning", "python", "pytorch", "nlp", "evaluation"],
+    "url": "https://example.com/jobs/role-005",
+    "snippet": "Train, evaluate, and deploy NLP models in production."
+  },
+  {
+    "id": "role-006",
+    "title": "AI Infrastructure Engineer",
+    "company": "Runtime.ai",
+    "location": "Remote (India)",
+    "tags": ["docker", "redis", "python", "linux", "api", "mlops"],
+    "url": "https://example.com/jobs/role-006",
+    "snippet": "Own the serving and infra layer for LLM-powered products."
+  },
+  {
+    "id": "role-007",
+    "title": "LLM Evaluation Engineer",
+    "company": "Rubric AI",
+    "location": "Remote",
+    "tags": ["evaluation", "llm", "python", "statistics", "hallucination"],
+    "url": "https://example.com/jobs/role-007",
+    "snippet": "Build benchmarks and scoring harnesses for reasoning and grounding."
+  },
+  {
+    "id": "role-008",
+    "title": "RAG Engineer",
+    "company": "Citewise",
+    "location": "Hybrid (Delhi NCR)",
+    "tags": ["rag", "embeddings", "vector database", "qdrant", "python", "fastapi"],
+    "url": "https://example.com/jobs/role-008",
+    "snippet": "Build retrieval pipelines with citation and grounding guarantees."
+  },
+  {
+    "id": "role-009",
+    "title": "Solutions Engineer (AI)",
+    "company": "Lumen Startups",
+    "location": "Remote (India)",
+    "tags": ["python", "llm", "api", "automation", "fastapi"],
+    "url": "https://example.com/jobs/role-009",
+    "snippet": "Sit between customers and product, shipping AI proofs-of-concept fast."
+  },
+  {
+    "id": "role-010",
+    "title": "Junior NLP Engineer",
+    "company": "Lexio",
+    "location": "Bangalore, India",
+    "tags": ["nlp", "python", "machine learning", "transformers", "evaluation"],
+    "url": "https://example.com/jobs/role-010",
+    "snippet": "Work on text classification, extraction, and model evaluation."
+  }
+]

@@ -1,0 +1,12 @@
+{
+  "id": "ai_engineer_rag",
+  "resume_path": "data/resume.md",
+  "job_description": "Senior AI Engineer at Acme AI. Build retrieval-augmented (RAG) features on top of LLMs. Strong Python, FastAPI, Docker. Set up embeddings and a vector database. Strong on evaluation so we can measure retrieval quality and catch hallucinations.",
+  "expectations": {
+    "required_keywords": ["RAG", "LLM", "Python", "FastAPI", "embeddings", "evaluation"],
+    "forbidden_claims": ["PhD", "Google", "Meta", "10 years of experience"],
+    "must_include_sections": ["tailored_resume", "cover_letter", "role_matches"],
+    "min_role_matches": 1,
+    "coverage_threshold": 0.7
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "applied_ai_agents",
+  "resume_path": "data/resume.md",
+  "job_description": "Applied AI Engineer (Agents) at Northstar Labs. Design tool-using agents with function calling on top of LLMs. Build evaluation harnesses that score task success and grounding. Work across Python and RAG.",
+  "expectations": {
+    "required_keywords": ["agents", "evaluation", "Python", "LLM", "RAG"],
+    "forbidden_claims": ["PhD", "Meta", "10 years of experience"],
+    "must_include_sections": ["tailored_resume", "cover_letter", "role_matches"],
+    "min_role_matches": 1,
+    "coverage_threshold": 0.7
+  }
+}

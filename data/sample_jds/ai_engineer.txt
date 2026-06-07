@@ -1,0 +1,15 @@
+Senior AI Engineer at Acme AI
+
+We're hiring an AI Engineer to build retrieval-augmented (RAG) features on top of LLMs.
+
+You will:
+- Design and ship RAG pipelines with embeddings and a vector database
+- Build and own backend services in Python and FastAPI
+- Containerize and deploy with Docker
+- Set up evaluation so we can measure retrieval quality and catch hallucinations
+
+Requirements:
+- Strong Python
+- Hands-on with LLMs and RAG
+- Experience with FastAPI and Docker
+- A real understanding of evaluation — you can prove a system works, not just demo it

@@ -1,0 +1,14 @@
+Applied AI Engineer (Agents) at Northstar Labs
+
+We build tool-using AI agents for real workflows and care deeply about whether they work.
+
+You will:
+- Design agentic systems with tool/function calling on top of LLMs
+- Build evaluation harnesses that score task success and grounding
+- Work across Python, RAG, and LLM orchestration
+
+Requirements:
+- Strong Python
+- Experience building agents (agentic, tool-calling) with LLMs
+- Familiarity with RAG
+- You take evaluation seriously and can measure agent quality

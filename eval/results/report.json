@@ -1,0 +1,42 @@
+{
+  "generated_at": "2026-06-07T08:20:40.254094+00:00",
+  "mode": "mock",
+  "model": "mock",
+  "n_cases": 3,
+  "task_success_rate": 1.0,
+  "task_success_ci95": [
+    0.438,
+    1.0
+  ],
+  "avg_keyword_coverage": 1.0,
+  "grounding_pass_rate": 1.0,
+  "cases": [
+    {
+      "id": "ai_engineer_rag",
+      "keyword_coverage": 1.0,
+      "coverage_pass": true,
+      "grounding_pass": true,
+      "structure_pass": true,
+      "task_success": true,
+      "steps": 4
+    },
+    {
+      "id": "applied_ai_agents",
+      "keyword_coverage": 1.0,
+      "coverage_pass": true,
+      "grounding_pass": true,
+      "structure_pass": true,
+      "task_success": true,
+      "steps": 4
+    },
+    {
+      "id": "ai_automation_engineer",
+      "keyword_coverage": 1.0,
+      "coverage_pass": true,
+      "grounding_pass": true,
+      "structure_pass": true,
+      "task_success": true,
+      "steps": 4
+    }
+  ]
+}
