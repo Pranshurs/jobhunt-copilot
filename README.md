@@ -2,6 +2,8 @@
 
 **An AI agent that tailors your job application — and an evaluation harness that proves it works.**
 
+[![tests](https://github.com/Pranshurs/jobhunt-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/Pranshurs/jobhunt-copilot/actions/workflows/ci.yml) &nbsp;·&nbsp; **Live demo → [jobhunt.ylemis.com](https://jobhunt.ylemis.com)**
+
 Most "AI agent" demos look impressive and quietly hallucinate. This project is the opposite: a tool-using agent that tailors a resume, drafts a cover letter, and finds matching roles — wrapped in an **evaluation harness that scores task success, keyword coverage, and grounding** across a suite of test cases, with a Wilson confidence interval on the result.
 
 > Building agents is common. *Measuring* whether they work is rare. This repo does both.
@@ -74,7 +76,7 @@ You'll get a tailored resume, a grounded cover letter, and ranked role matches �
 
 ```bash
 uvicorn app:app --reload
-# open http://localhost:8000  → paste a JD → "Tailor my application"
+# open http://localhost:8000 → paste your résumé (or upload a PDF/DOCX) + a JD → "Tailor my application"
 ```
 
 ### Live LLM mode
@@ -191,8 +193,8 @@ docker run -d --name jobhunt -p 8000:8000 \
   jobhunt-copilot
 ```
 
-Put it behind nginx (or Caddy) with TLS and point a subdomain at it.
-**Live demo:** `https://<your-domain>` *(add once deployed)*
+Behind a reverse proxy (Traefik/Caddy/nginx) you get automatic HTTPS on a subdomain.
+**Live demo:** https://jobhunt.ylemis.com
 
 ---
 
@@ -208,9 +210,9 @@ This is project 1 of a small, focused portfolio:
 
 ## Notes
 
-`data/resume.md` is a sample profile used as the agent's default candidate — replace it with
-your own resume text. The roles database is sample data; swapping in a real job-board feed
-(or a live search tool) is a natural next step.
+The web app and API accept **any résumé** — paste text or upload a PDF/DOCX/TXT. `data/resume.md`
+is just the default profile used when none is supplied. The roles database is sample data; swapping
+in a real job-board feed (or a live search tool) is a natural next step.
 
 ## Author
 

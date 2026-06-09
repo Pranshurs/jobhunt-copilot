@@ -3,133 +3,270 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>JobHunt Copilot</title>
+<title>JobHunt Copilot — AI résumé tailoring with built-in evaluation</title>
 <style>
-  :root {
-    --bg: #0f1115; --panel: #171a21; --panel2: #1e222b; --line: #2a2f3a;
-    --text: #e7eaf0; --muted: #9aa3b2; --accent: #6ea8fe; --accent2: #8ce99a;
+  :root{
+    --bg:#f5f6f9; --card:#ffffff; --ink:#1b1f2a; --muted:#697086;
+    --line:#e7e9f0; --accent:#4f46e5; --accent-d:#4338ca; --soft:#eef1ff;
+    --green:#16a34a; --shadow:0 1px 2px rgba(16,24,40,.04),0 8px 24px rgba(16,24,40,.06);
+    --radius:14px;
   }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0; background: var(--bg); color: var(--text);
-    font: 15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:var(--bg); color:var(--ink);
+    font:15px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
   }
-  header { padding: 28px 20px 8px; max-width: 980px; margin: 0 auto; }
-  h1 { margin: 0; font-size: 22px; }
-  .sub { color: var(--muted); margin-top: 4px; }
-  .badge {
-    display: inline-block; font-size: 12px; color: var(--accent2);
-    border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; margin-left: 8px;
+  a{color:var(--accent);text-decoration:none}
+  .wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+
+  header{
+    background:linear-gradient(180deg,#fff, #fbfbfe);
+    border-bottom:1px solid var(--line);
+    padding:22px 0;
   }
-  main { max-width: 980px; margin: 0 auto; padding: 12px 20px 60px; }
-  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
-  @media (max-width: 760px) { .grid { grid-template-columns: 1fr; } }
-  textarea {
-    width: 100%; min-height: 200px; resize: vertical; background: var(--panel2);
-    color: var(--text); border: 1px solid var(--line); border-radius: 10px; padding: 12px;
-    font: 13px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+  .top{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:12px}
+  .logo{width:38px;height:38px;border-radius:10px;background:var(--accent);
+    display:grid;place-items:center;color:#fff;font-weight:800;font-size:18px}
+  .brand h1{font-size:18px;margin:0;letter-spacing:-.01em}
+  .brand p{margin:1px 0 0;color:var(--muted);font-size:12.5px}
+  .pill{font-size:12px;color:var(--accent);background:var(--soft);border:1px solid #dfe3ff;
+    border-radius:999px;padding:4px 11px;font-weight:600}
+  .ghlink{font-size:13px;color:var(--muted)}
+
+  .hero{padding:30px 0 6px}
+  .hero h2{font-size:25px;line-height:1.25;margin:0 0 8px;letter-spacing:-.02em;max-width:760px}
+  .hero p{margin:0;color:var(--muted);max-width:720px}
+  .hero .em{color:var(--ink);font-weight:600}
+
+  main{padding:22px 0 70px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow)}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:780px){.grid{grid-template-columns:1fr}}
+
+  .field{padding:16px}
+  .field .lbl{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
+  .field label{font-weight:600;font-size:13.5px}
+  .field .hint{color:var(--muted);font-size:12px}
+  textarea{
+    width:100%;min-height:230px;resize:vertical;background:#fcfcfe;color:var(--ink);
+    border:1px solid var(--line);border-radius:10px;padding:12px 13px;font:13.5px/1.55 inherit;
   }
-  button {
-    margin-top: 12px; background: var(--accent); color: #06101f; border: 0;
-    padding: 11px 18px; border-radius: 10px; font-weight: 600; cursor: pointer;
-  }
-  button:disabled { opacity: .6; cursor: progress; }
-  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; }
-  .panel h2 { font-size: 14px; margin: 0 0 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
-  pre { white-space: pre-wrap; word-wrap: break-word; margin: 0; font: 13px/1.5 ui-monospace, Menlo, monospace; }
-  .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip { background: var(--panel2); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; font-size: 12px; }
-  .role { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; background: var(--panel2); }
-  .role .t { font-weight: 600; }
-  .role .m { color: var(--muted); font-size: 13px; }
-  .score { color: var(--accent2); font-size: 12px; }
-  .out { margin-top: 18px; display: none; }
-  .out.show { display: block; }
-  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 18px; }
-  @media (max-width: 760px) { .row { grid-template-columns: 1fr; } }
-  footer { color: var(--muted); font-size: 12px; text-align: center; padding: 20px; }
-  a { color: var(--accent); }
+  textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--soft)}
+  .upload{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--accent);
+    cursor:pointer;border:1px dashed #c9cdec;border-radius:8px;padding:5px 10px;background:#fff}
+  .upload:hover{background:var(--soft)}
+  .upload input{display:none}
+  .fstatus{font-size:12px;color:var(--muted);margin-top:7px;min-height:16px}
+
+  .actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:4px 16px 18px}
+  .btn{appearance:none;border:0;border-radius:10px;font-weight:650;cursor:pointer;font-size:14.5px}
+  .btn-primary{background:var(--accent);color:#fff;padding:12px 20px}
+  .btn-primary:hover{background:var(--accent-d)}
+  .btn-primary:disabled{opacity:.6;cursor:progress}
+  .btn-ghost{background:#fff;color:var(--ink);border:1px solid var(--line);padding:11px 16px}
+  .btn-ghost:hover{background:#f4f5f9}
+  .spinner{width:15px;height:15px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;
+    border-radius:50%;display:inline-block;vertical-align:-2px;margin-right:8px;animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  .out{margin-top:24px;display:none}
+  .out.show{display:block;animation:fade .3s ease}
+  @keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  .sec-h{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);
+    font-weight:700;margin:0 0 10px}
+  .chips{display:flex;flex-wrap:wrap;gap:7px}
+  .chip{background:var(--soft);border:1px solid #dfe3ff;color:var(--accent-d);
+    border-radius:999px;padding:4px 11px;font-size:12.5px;font-weight:600}
+  .panelpad{padding:18px}
+  .doc{background:#fcfcfe;border:1px solid var(--line);border-radius:10px;padding:16px;
+    font-size:13.5px;line-height:1.6;max-height:460px;overflow:auto}
+  .doc h1,.doc h2,.doc h3{margin:.4em 0 .3em;line-height:1.3}
+  .doc h1{font-size:17px}.doc h2{font-size:15px}.doc h3{font-size:13.5px;color:var(--muted)}
+  .doc ul{margin:.3em 0;padding-left:18px}
+  .cardhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+  .copy{font-size:12px;color:var(--accent);background:#fff;border:1px solid var(--line);
+    border-radius:7px;padding:4px 10px;cursor:pointer}
+  .copy:hover{background:var(--soft)}
+  .role{display:flex;align-items:center;justify-content:space-between;gap:12px;
+    border:1px solid var(--line);border-radius:10px;padding:11px 13px;margin-bottom:9px;background:#fcfcfe}
+  .role .t{font-weight:600}.role .m{color:var(--muted);font-size:12.5px;margin-top:1px}
+  .score{font-size:12px;color:var(--green);font-weight:700;white-space:nowrap}
+  .err{color:#b42318;background:#fef3f2;border:1px solid #fecdca;border-radius:10px;
+    padding:11px 13px;margin-top:14px;display:none}
+
+  footer{border-top:1px solid var(--line);color:var(--muted);font-size:12.5px;
+    text-align:center;padding:20px}
 </style>
 </head>
 <body>
-  <header>
-    <h1>JobHunt Copilot <span class="badge" id="mode">checking…</span></h1>
-    <div class="sub">An AI agent that tailors your resume, drafts a cover letter, and finds matching roles — with a built-in evaluation harness that measures whether it actually works.</div>
-  </header>
-
-  <main>
-    <div class="panel">
-      <h2>Paste a job description</h2>
-      <textarea id="jd" placeholder="Paste a job description here…">Senior AI Engineer at Acme AI. Build retrieval-augmented (RAG) features on top of LLMs. Strong Python, FastAPI, Docker. Set up embeddings and a vector database. Strong on evaluation so we can measure retrieval quality and catch hallucinations.</textarea>
-      <button id="go" onclick="run()">Tailor my application</button>
+  <header><div class="wrap top">
+    <div class="brand">
+      <div class="logo">JC</div>
+      <div><h1>JobHunt Copilot</h1><p>AI application tailoring · with a built-in evaluation harness</p></div>
     </div>
-
-    <div class="out" id="out">
-      <div class="panel" style="margin-top:18px">
-        <h2>Keywords the agent matched</h2>
-        <div class="chips" id="kw"></div>
-      </div>
-
-      <div class="row">
-        <div class="panel">
-          <h2>Tailored resume</h2>
-          <pre id="resume"></pre>
-        </div>
-        <div class="panel">
-          <h2>Cover letter</h2>
-          <pre id="cover"></pre>
-        </div>
-      </div>
-
-      <div class="panel" style="margin-top:18px">
-        <h2>Matching roles</h2>
-        <div id="roles"></div>
-      </div>
+    <div style="display:flex;align-items:center;gap:14px">
+      <span class="pill" id="mode">·</span>
+      <a class="ghlink" href="https://github.com/Pranshurs/jobhunt-copilot" target="_blank" rel="noopener">GitHub ↗</a>
     </div>
-  </main>
+  </div></header>
 
-  <footer>Runs offline in mock mode · set an API key for live LLM mode · <a href="/api/health">health</a></footer>
+  <div class="wrap">
+    <section class="hero">
+      <h2>Paste your résumé and a job description — get a tailored résumé, a grounded cover letter, and matching roles.</h2>
+      <p>An AI agent does the work; an <span class="em">evaluation harness</span> scores whether it actually worked — keyword coverage, grounding, and task success. Runs free in offline demo mode.</p>
+    </section>
+
+    <main>
+      <div class="card">
+        <div class="grid">
+          <div class="field" style="border-right:1px solid var(--line)">
+            <div class="lbl">
+              <label for="resume">Your résumé</label>
+              <label class="upload">⬆ Upload PDF / DOCX / TXT
+                <input id="file" type="file" accept=".pdf,.docx,.txt,.md" onchange="onFile(this)">
+              </label>
+            </div>
+            <textarea id="resume" placeholder="Paste your résumé here, or upload a file above. Leave blank to try the built-in sample profile."></textarea>
+            <div class="fstatus" id="fstatus"></div>
+          </div>
+          <div class="field">
+            <div class="lbl"><label for="jd">Job description</label><span class="hint">paste the full posting</span></div>
+            <textarea id="jd" placeholder="Paste the job description you're applying to…"></textarea>
+            <div class="fstatus"></div>
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" id="go" onclick="run()">Tailor my application</button>
+          <button class="btn btn-ghost" onclick="loadSample()">Try a sample</button>
+          <span class="hint" id="modehint"></span>
+        </div>
+      </div>
+
+      <div class="err" id="err"></div>
+
+      <div class="out" id="out">
+        <div class="card panelpad" style="margin-top:22px">
+          <h3 class="sec-h">Skills the agent matched to the role</h3>
+          <div class="chips" id="kw"></div>
+        </div>
+        <div class="grid" style="margin-top:16px">
+          <div class="card panelpad">
+            <div class="cardhead"><h3 class="sec-h" style="margin:0">Tailored résumé</h3>
+              <button class="copy" onclick="copyDoc('resumeOut',this)">Copy</button></div>
+            <div class="doc" id="resumeOut"></div>
+          </div>
+          <div class="card panelpad">
+            <div class="cardhead"><h3 class="sec-h" style="margin:0">Cover letter</h3>
+              <button class="copy" onclick="copyDoc('coverOut',this)">Copy</button></div>
+            <div class="doc" id="coverOut"></div>
+          </div>
+        </div>
+        <div class="card panelpad" style="margin-top:16px">
+          <h3 class="sec-h">Other roles you match</h3>
+          <div id="roles"></div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <footer class="wrap">
+    Runs offline in demo mode (no API key) · <a href="/api/health">status</a> ·
+    <a href="https://github.com/Pranshurs/jobhunt-copilot" target="_blank" rel="noopener">source</a>
+  </footer>
 
 <script>
-  fetch('/api/health').then(r => r.json()).then(d => {
-    document.getElementById('mode').textContent = d.mode + ' mode';
-  }).catch(() => {});
+  const $ = id => document.getElementById(id);
 
-  async function run() {
-    const btn = document.getElementById('go');
-    const jd = document.getElementById('jd').value.trim();
-    if (!jd) return;
-    btn.disabled = true; btn.textContent = 'Working…';
-    try {
-      const res = await fetch('/api/run', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ job_description: jd })
-      });
-      const d = await res.json();
+  fetch('/api/health').then(r=>r.json()).then(d=>{
+    $('mode').textContent = d.mode==='live' ? 'live mode' : 'demo mode';
+    $('modehint').textContent = d.mode==='live' ? '' : 'Demo mode: deterministic output, no API key needed.';
+  }).catch(()=>{});
 
-      document.getElementById('kw').innerHTML =
-        (d.keywords || []).map(k => `<span class="chip">${esc(k)}</span>`).join('');
-      document.getElementById('resume').textContent = d.tailored_resume || '';
-      document.getElementById('cover').textContent = d.cover_letter || '';
-      document.getElementById('roles').innerHTML = (d.selected_roles || []).map(r => `
-        <div class="role">
-          <div class="t">${esc(r.title)} <span class="score">match ${r.score}</span></div>
-          <div class="m">${esc(r.company)} · ${esc(r.location)}</div>
-        </div>`).join('') || '<div class="m">No matches found.</div>';
+  function esc(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-      document.getElementById('out').classList.add('show');
-    } catch (e) {
-      alert('Something went wrong: ' + e);
-    } finally {
-      btn.disabled = false; btn.textContent = 'Tailor my application';
+  // tiny, safe markdown-ish renderer (escapes first, then formats)
+  function render(md){
+    const lines = esc(md).split('\n'); let html=''; let inList=false;
+    for(let raw of lines){
+      let l = raw.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+      if(/^### /.test(raw)){ html+=close(); html+='<h3>'+l.slice(4)+'</h3>'; continue; }
+      if(/^## /.test(raw)){ html+=close(); html+='<h2>'+l.slice(3)+'</h2>'; continue; }
+      if(/^# /.test(raw)){ html+=close(); html+='<h1>'+l.slice(2)+'</h1>'; continue; }
+      if(/^\s*[-*] /.test(raw)){ if(!inList){html+='<ul>';inList=true;} html+='<li>'+l.replace(/^\s*[-*] /,'')+'</li>'; continue; }
+      if(raw.trim()===''){ html+=close()+'<div style="height:8px"></div>'; continue; }
+      html+=close()+'<div>'+l+'</div>';
     }
+    function close(){ if(inList){inList=false;return '</ul>';} return ''; }
+    if(inList) html+='</ul>';
+    return html;
   }
 
-  function esc(s) {
-    return String(s == null ? '' : s)
-      .replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+  async function onFile(input){
+    const f = input.files[0]; if(!f) return;
+    $('fstatus').textContent = 'Reading ' + f.name + '…';
+    try{
+      const fd = new FormData(); fd.append('file', f);
+      const r = await fetch('/api/extract',{method:'POST',body:fd});
+      const d = await r.json();
+      if(d.error){ $('fstatus').textContent = d.error; return; }
+      $('resume').value = d.text || '';
+      $('fstatus').textContent = '✓ Loaded ' + (d.filename||f.name) + ' (' + ($('resume').value.length) + ' chars) — edit if needed';
+    }catch(e){ $('fstatus').textContent = 'Upload failed — paste the text instead.'; }
   }
+
+  async function run(){
+    const jd = $('jd').value.trim();
+    const resume = $('resume').value.trim();
+    $('err').style.display='none';
+    if(!jd){ showErr('Paste a job description first.'); return; }
+    const btn = $('go'); btn.disabled=true; btn.innerHTML='<span class="spinner"></span>Working…';
+    try{
+      const r = await fetch('/api/run',{method:'POST',headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({job_description:jd, resume})});
+      if(!r.ok) throw new Error('server '+r.status);
+      const d = await r.json();
+      $('kw').innerHTML = (d.keywords||[]).map(k=>'<span class="chip">'+esc(k)+'</span>').join('') || '<span class="hint">—</span>';
+      $('resumeOut').innerHTML = render(d.tailored_resume||'');
+      $('coverOut').innerHTML = render(d.cover_letter||'');
+      $('roles').innerHTML = (d.selected_roles||[]).map(x=>
+        '<div class="role"><div><div class="t">'+esc(x.title)+'</div><div class="m">'+esc(x.company)+' · '+esc(x.location)+'</div></div>'
+        +'<div class="score">'+Math.round((x.score||0)*100)+'% match</div></div>').join('') || '<span class="hint">No close matches.</span>';
+      $('out').classList.add('show');
+      $('out').scrollIntoView({behavior:'smooth',block:'start'});
+    }catch(e){ showErr('Something went wrong ('+e.message+'). Try again.'); }
+    finally{ btn.disabled=false; btn.textContent='Tailor my application'; }
+  }
+
+  function showErr(m){ const e=$('err'); e.textContent=m; e.style.display='block'; }
+
+  async function copyDoc(id,btn){
+    try{ await navigator.clipboard.writeText($(id).innerText); const t=btn.textContent; btn.textContent='Copied ✓'; setTimeout(()=>btn.textContent=t,1400);}catch(e){}
+  }
+
+  function loadSample(){
+    $('resume').value = SAMPLE_RESUME;
+    $('jd').value = SAMPLE_JD;
+    $('fstatus').textContent = 'Loaded sample résumé — replace with your own anytime';
+  }
+  const SAMPLE_RESUME = `# Alex Rivera
+AI/ML Engineer — Remote
+
+## Summary
+Engineer who builds and evaluates LLM systems: RAG, agents, and automation in Python.
+
+## Skills
+Python, FastAPI, Docker, LLMs, RAG, embeddings, evaluation, NLP, PostgreSQL, Redis
+
+## Experience
+- ML Engineer, Acme (2023–present): shipped a RAG search feature; built an eval suite for retrieval quality.
+- Backend Intern, Beta Labs (2022): Python services, REST APIs.
+
+## Education
+B.S. Computer Science, 2022`;
+  const SAMPLE_JD = `AI Engineer at Northwind. Build retrieval-augmented (RAG) features on LLMs. Must know Python, FastAPI, Docker, embeddings, and evaluation. You can prove a system works, not just demo it.`;
 </script>
 </body>
 </html>

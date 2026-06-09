@@ -12,3 +12,6 @@ venv/
 # Runtime output
 outputs/
 eval/results/_apps/
+
+# macOS
+.DS_Store
