@@ -1,4 +1,17 @@
-"""The JobHunt Copilot agent: a tool-calling loop over an LLM."""
+"""The JobHunt Copilot agent: a tool-calling loop over an LLM.
+
+The loop ends in exactly one of these states, recorded as ``ApplicationResult.status``:
+
+* ``submitted``                  — submit_application succeeded (the only success state)
+* ``max_steps_exceeded``         — the step budget ran out before a submission
+* ``stopped_without_submitting`` — the model replied without calling a tool
+* ``llm_error``                  — the LLM request failed after the client's retries
+* ``invalid_input``              — the job description was empty or too long; no LLM call made
+
+Tool errors (unknown tool, invalid or non-JSON arguments, a second submit, a tool that
+raises) don't end the loop. They are returned to the model as the tool result, so it can
+correct itself, and are marked ``ok=False`` in the trace.
+"""
 
 from __future__ import annotations
 
@@ -10,6 +23,7 @@ from .schemas import ApplicationResult, Role, ToolCallTrace
 from .tools import TOOL_SCHEMAS, Toolbox
 
 TERMINAL_TOOL = "submit_application"
+MAX_JD_CHARS = 20_000
 
 
 class JobHuntAgent:
@@ -21,23 +35,34 @@ class JobHuntAgent:
         self.max_steps = max_steps
 
     def run(self, job_description: str) -> ApplicationResult:
+        jd = (job_description or "").strip()
+        if not jd or len(jd) > MAX_JD_CHARS:
+            reason = "empty job description" if not jd else f"job description over {MAX_JD_CHARS} characters"
+            return self._assemble(jd, [], [], [], 0, "invalid_input", reason)
+
         messages: list[dict] = [
             {"role": "system", "content": SYSTEM_PROMPT},
-            {"role": "user", "content": job_description},
+            {"role": "user", "content": jd},
         ]
 
         trace: list[ToolCallTrace] = []
         keywords: list[str] = []
         roles_result: list[dict] = []
         steps_used = 0
-        submitted = False
+        status = "max_steps_exceeded"
+        error = ""
 
         for step in range(1, self.max_steps + 1):
             steps_used = step
-            response: LLMResponse = self.llm.chat(messages, tools=TOOL_SCHEMAS)
+            try:
+                response: LLMResponse = self.llm.chat(messages, tools=TOOL_SCHEMAS)
+            except Exception as exc:  # network, auth, rate limit after retries, timeout
+                status, error = "llm_error", f"{type(exc).__name__}: {exc}"
+                break
 
             if not response.tool_calls:
-                break  # model produced a final message (or gave up) without tools
+                status = "stopped_without_submitting"
+                break
 
             messages.append(
                 {
@@ -47,7 +72,7 @@ class JobHuntAgent:
                         {
                             "id": tc.id,
                             "type": "function",
-                            "function": {"name": tc.name, "arguments": json.dumps(tc.arguments)},
+                            "function": {"name": tc.name, "arguments": json.dumps(tc.arguments or {})},
                         }
                         for tc in response.tool_calls
                     ],
@@ -56,15 +81,16 @@ class JobHuntAgent:
 
             for tc in response.tool_calls:
                 result = self.toolbox.dispatch(tc.name, tc.arguments)
+                ok = "error" not in result
                 trace.append(
                     ToolCallTrace(
-                        step=step, name=tc.name, arguments=tc.arguments,
-                        summary=_summarize(tc.name, result),
+                        step=step, name=tc.name, arguments=tc.arguments or {},
+                        summary=_summarize(tc.name, result), ok=ok,
                     )
                 )
-                if tc.name == "extract_keywords":
+                if ok and tc.name == "extract_keywords":
                     keywords = result.get("keywords", []) or keywords
-                elif tc.name == "search_roles":
+                elif ok and tc.name == "search_roles":
                     roles_result = result.get("roles", []) or roles_result
 
                 messages.append(
@@ -75,15 +101,15 @@ class JobHuntAgent:
                         "content": json.dumps(result),
                     }
                 )
-                if tc.name == TERMINAL_TOOL:
-                    submitted = True
+                if ok and tc.name == TERMINAL_TOOL:
+                    status = "submitted"
 
-            if submitted:
+            if status == "submitted":
                 break
 
-        return self._assemble(job_description, keywords, roles_result, trace, steps_used)
+        return self._assemble(jd, keywords, roles_result, trace, steps_used, status, error)
 
-    def _assemble(self, jd, keywords, roles_result, trace, steps_used) -> ApplicationResult:
+    def _assemble(self, jd, keywords, roles_result, trace, steps_used, status, error) -> ApplicationResult:
         sub = self.toolbox.last_submission or {}
         selected_ids = set(sub.get("selected_role_ids") or [])
         selected_roles = [
@@ -95,7 +121,7 @@ class JobHuntAgent:
             )
             for r in roles_result
             if not selected_ids or r.get("id") in selected_ids
-        ]
+        ] if status == "submitted" else []
         return ApplicationResult(
             job_title=_guess_title(jd),
             tailored_resume=sub.get("tailored_resume", ""),
@@ -104,16 +130,23 @@ class JobHuntAgent:
             keywords=keywords,
             trace=trace,
             steps_used=steps_used,
+            status=status,
+            error=error,
         )
 
 
 def _summarize(name: str, result: dict) -> str:
+    if "error" in result:
+        err = result["error"]
+        return f"error {err.get('type')}: {err.get('message', '')}"[:200]
     if name == "read_resume":
         return f"{result.get('chars', 0)} chars"
     if name == "extract_keywords":
-        return f"{result.get('count', 0)} keywords"
+        return (f"{result.get('count', 0)} keywords, "
+                f"{len(result.get('matched_in_resume', []))} supported by the resume")
     if name == "search_roles":
-        return f"{result.get('count', 0)} roles"
+        suffix = " (unranked fallback)" if result.get("unranked_fallback") else ""
+        return f"{result.get('count', 0)} roles{suffix}"
     if name == "submit_application":
         return result.get("status", "")
     return ""

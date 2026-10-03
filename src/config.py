@@ -27,6 +27,8 @@ class Settings:
     model: str
     temperature: float
     max_steps: int
+    timeout_s: float = 60.0   # per LLM request attempt
+    max_retries: int = 2      # SDK retries on connection errors, 429 and 5xx
 
 
 def get_settings() -> Settings:
@@ -43,4 +45,6 @@ def get_settings() -> Settings:
         model=os.getenv("LLM_MODEL", "llama-3.3-70b-versatile").strip(),
         temperature=float(os.getenv("LLM_TEMPERATURE", "0.2")),
         max_steps=int(os.getenv("AGENT_MAX_STEPS", "8")),
+        timeout_s=float(os.getenv("LLM_TIMEOUT_S", "60")),
+        max_retries=int(os.getenv("LLM_MAX_RETRIES", "2")),
     )

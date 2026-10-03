@@ -4,8 +4,16 @@ The harness measures three things per test case and combines them into a single
 pass/fail ``task_success`` flag:
 
 * keyword_coverage — did the tailored application surface the job's key requirements?
-* grounding        — did it avoid claims the candidate can't back up (hallucination guard)?
-* structure        — are all required sections present and is at least one role matched?
+* grounding        — no skill named in the output that the source resume lacks, and none
+                     of the case's forbidden phrases (fabricated degrees, employers, ...)
+* structure        — the run submitted, all required sections are present, enough roles
+
+A case can instead expect a non-success end state (``expected_status``, e.g. an empty job
+description must end ``invalid_input``); it then passes only if the run ends that way.
+
+The skill check is lexical: it looks for vocabulary skills (see src/tools.py) in the
+tailored resume and the cover letter. A letter that *mentions* a skill the candidate lacks
+("your stack uses Kubernetes") counts as an unsupported claim, so the check errs strict.
 
 It also reports a Wilson score 95% confidence interval on the success rate, because a
 point estimate over a handful of cases without an interval is misleading.
@@ -14,6 +22,8 @@ point estimate over a handful of cases without an interval is misleading.
 from __future__ import annotations
 
 import math
+
+from src.tools import skill_keys
 
 
 def keyword_coverage(text: str, required: list[str]) -> float:
@@ -27,8 +37,18 @@ def keyword_coverage(text: str, required: list[str]) -> float:
 
 def grounding_ok(texts: list[str], forbidden: list[str]) -> bool:
     """True if none of the forbidden (unsupported) claims appear anywhere in the texts."""
+    return not forbidden_hits(texts, forbidden)
+
+
+def forbidden_hits(texts: list[str], forbidden: list[str]) -> list[str]:
     blob = " ".join(texts).lower()
-    return not any(f.lower() in blob for f in (forbidden or []))
+    return [f for f in (forbidden or []) if f.lower() in blob]
+
+
+def unsupported_skills(texts: list[str], resume: str) -> list[str]:
+    """Vocabulary skills named in the output that the source resume doesn't contain."""
+    claimed = set().union(*(skill_keys(t) for t in texts)) if texts else set()
+    return sorted(claimed - skill_keys(resume))
 
 
 def structure_complete(result: dict, must_include: list[str], min_roles: int) -> bool:
@@ -41,8 +61,20 @@ def structure_complete(result: dict, must_include: list[str], min_roles: int) ->
     return len(result.get("selected_roles", [])) >= min_roles
 
 
-def score_case(result: dict, expectations: dict) -> dict:
-    """Score a single agent result against a case's expectations."""
+def score_case(result: dict, expectations: dict, resume: str = "") -> dict:
+    """Score a single agent result against a case's expectations.
+
+    ``resume`` is the source resume the run was given; without it the skill-grounding
+    check is skipped (kept for callers that only have the output).
+    """
+    status = result.get("status", "submitted")
+    expected_status = expectations.get("expected_status", "submitted")
+    if expected_status != "submitted":
+        ok = status == expected_status
+        return {"status": status, "keyword_coverage": None, "coverage_pass": ok,
+                "grounding_pass": ok, "structure_pass": ok, "unsupported_skills": [],
+                "forbidden_hits": [], "task_success": ok}
+
     required = expectations.get("required_keywords", [])
     forbidden = expectations.get("forbidden_claims", [])
     must_include = expectations.get(
@@ -55,16 +87,20 @@ def score_case(result: dict, expectations: dict) -> dict:
     cover = result.get("cover_letter", "") or ""
 
     coverage = keyword_coverage(f"{tailored}\n{cover}", required)
-    grounded = grounding_ok([tailored, cover], forbidden)
-    structured = structure_complete(result, must_include, min_roles)
+    hits = forbidden_hits([tailored, cover], forbidden)
+    unsupported = unsupported_skills([tailored, cover], resume) if resume else []
+    structured = status == "submitted" and structure_complete(result, must_include, min_roles)
 
     checks = {
+        "status": status,
         "keyword_coverage": round(coverage, 3),
         "coverage_pass": coverage >= coverage_threshold,
-        "grounding_pass": grounded,
+        "grounding_pass": not hits and not unsupported,
         "structure_pass": structured,
+        "unsupported_skills": unsupported,
+        "forbidden_hits": hits,
     }
-    checks["task_success"] = bool(checks["coverage_pass"] and grounded and structured)
+    checks["task_success"] = bool(checks["coverage_pass"] and checks["grounding_pass"] and structured)
     return checks
 
 
