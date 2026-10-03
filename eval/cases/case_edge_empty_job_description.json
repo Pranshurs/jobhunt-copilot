@@ -1,0 +1,9 @@
+{
+  "id": "edge_empty_job_description",
+  "resume_path": "data/resume.md",
+  "job_description": "   ",
+  "expectations": {
+    "expected_status": "invalid_input"
+  },
+  "note": "Rejected before any LLM call."
+}

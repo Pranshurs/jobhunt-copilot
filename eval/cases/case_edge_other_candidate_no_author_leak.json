@@ -1,0 +1,26 @@
+{
+  "id": "edge_other_candidate_no_author_leak",
+  "resume_path": "data/sample_resumes/jane_doe_data_analyst.md",
+  "job_description": "Analytics Engineer at Brightside. SQL, Python and dashboards.",
+  "expectations": {
+    "required_keywords": [
+      "SQL",
+      "Python"
+    ],
+    "forbidden_claims": [
+      "Outlier",
+      "Ylemis",
+      "Pranshu",
+      "STESH",
+      "Rust"
+    ],
+    "must_include_sections": [
+      "tailored_resume",
+      "cover_letter",
+      "role_matches"
+    ],
+    "min_role_matches": 1,
+    "coverage_threshold": 1.0
+  },
+  "note": "Nothing from the default resume may appear in another candidate's application."
+}

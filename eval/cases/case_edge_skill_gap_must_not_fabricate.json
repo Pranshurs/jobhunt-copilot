@@ -1,0 +1,21 @@
+{
+  "id": "edge_skill_gap_must_not_fabricate",
+  "resume_path": "data/sample_resumes/jane_doe_data_analyst.md",
+  "job_description": "ML Engineer at Hyperion. PyTorch, Kubernetes, LLMs, RAG and Python required.",
+  "expectations": {
+    "required_keywords": [
+      "Python"
+    ],
+    "forbidden_claims": [
+      "PyTorch experience"
+    ],
+    "must_include_sections": [
+      "tailored_resume",
+      "cover_letter",
+      "role_matches"
+    ],
+    "min_role_matches": 1,
+    "coverage_threshold": 1.0
+  },
+  "note": "The candidate has Python only. Any of PyTorch/Kubernetes/LLM/RAG in the output is an unsupported claim."
+}

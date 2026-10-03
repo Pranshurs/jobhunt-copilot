@@ -1,0 +1,18 @@
+{
+  "id": "edge_no_skill_overlap",
+  "resume_path": "data/sample_resumes/jane_doe_data_analyst.md",
+  "job_description": "Pastry Chef at Le Petit Four. Laminated doughs, croissants and seasonal tarts.",
+  "expectations": {
+    "required_keywords": [],
+    "forbidden_claims": [
+      "croissant expert"
+    ],
+    "must_include_sections": [
+      "tailored_resume",
+      "cover_letter"
+    ],
+    "min_role_matches": 0,
+    "coverage_threshold": 0.0
+  },
+  "note": "Nothing to match; the run must still submit a grounded application without inventing skills."
+}

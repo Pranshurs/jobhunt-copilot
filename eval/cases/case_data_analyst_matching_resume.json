@@ -1,0 +1,23 @@
+{
+  "id": "data_analyst_matching_resume",
+  "resume_path": "data/sample_resumes/jane_doe_data_analyst.md",
+  "job_description": "Data Analyst at Brightside. Strong SQL and Python (pandas); statistics for experiment analysis.",
+  "expectations": {
+    "required_keywords": [
+      "SQL",
+      "Python",
+      "pandas",
+      "statistics"
+    ],
+    "forbidden_claims": [
+      "PhD"
+    ],
+    "must_include_sections": [
+      "tailored_resume",
+      "cover_letter",
+      "role_matches"
+    ],
+    "min_role_matches": 1,
+    "coverage_threshold": 0.75
+  }
+}
