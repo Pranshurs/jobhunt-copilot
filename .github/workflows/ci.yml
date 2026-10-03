@@ -1,0 +1,37 @@
+name: tests
+
+# Offline only: no API key is configured, so the agent runs the scripted mock.
+# Proves the tools, the agent loop, the web API and the eval harness, including
+# that the harness fails known-bad policies. It does not evaluate a model.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.12"]
+    env:
+      LLM_API_KEY: ""
+      LLM_MODE: mock
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: pip install -r requirements-dev.txt
+      - name: Lint
+        run: ruff check --select E,F,W,B,I --ignore E501,B008 .
+      - name: Tests
+        run: pytest -q
+      - name: Eval (mock): every case must pass
+        run: python -m eval.run_eval --policy mock --require-all-pass --out-dir /tmp/eval
+      - name: Eval self-check: known-bad policies must fail their cases
+        run: python -m eval.run_eval --self-check --out-dir /tmp/eval
