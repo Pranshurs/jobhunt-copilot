@@ -6,8 +6,8 @@ A small tool-calling agent that tailors a résumé and cover letter to one job d
 and suggests similar roles. It comes with an evaluation harness that checks the output
 only claims what the candidate's résumé supports.
 
-**Status.** This is a small, self-contained project. There's no hosted demo: the earlier
-`jobhunt.ylemis.com` deployment is offline. **No live-model evaluation has been run.** The
+**Status.** This is a small, self-contained project. There's no hosted demo; run it locally
+(below). **No live-model evaluation has been run.** The
 committed eval results come from the offline scripted mock, which tests the pipeline and
 the harness, not model quality.
 
