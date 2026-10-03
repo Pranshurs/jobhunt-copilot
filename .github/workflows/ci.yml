@@ -31,7 +31,7 @@ jobs:
         run: ruff check --select E,F,W,B,I --ignore E501,B008 .
       - name: Tests
         run: pytest -q
-      - name: Eval (mock): every case must pass
+      - name: "Eval (mock): every case must pass"
         run: python -m eval.run_eval --policy mock --require-all-pass --out-dir /tmp/eval
-      - name: Eval self-check: known-bad policies must fail their cases
+      - name: "Eval self-check: known-bad policies must fail their cases"
         run: python -m eval.run_eval --self-check --out-dir /tmp/eval
