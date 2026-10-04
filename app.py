@@ -1,4 +1,4 @@
-"""FastAPI server exposing the JobHunt Copilot agent — this is the live demo.
+"""FastAPI server exposing the JobHunt Copilot agent.
 
 Run locally:
     uvicorn app:app --reload
@@ -8,7 +8,9 @@ Serves a single-page UI at "/" and a JSON API:
     POST /api/run      {job_description, resume?}  -> tailored application
     POST /api/extract  (multipart file)            -> plain text from PDF/DOCX/TXT
     GET  /api/health
-Works in offline mock mode out of the box; set LLM_API_KEY for live mode.
+Works in offline mock mode out of the box; set LLM_API_KEY for live mode. Every
+/api/run response says which mode produced it. Submitted résumés are processed in
+memory only and never written to the server's disk.
 """
 
 from __future__ import annotations
@@ -19,7 +21,7 @@ from typing import Optional
 
 from fastapi import FastAPI, File, UploadFile
 from fastapi.responses import HTMLResponse, JSONResponse
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from src.agent import JobHuntAgent
 from src.config import get_settings
@@ -37,8 +39,8 @@ app = FastAPI(title="JobHunt Copilot", version="0.2.0")
 
 
 class RunRequest(BaseModel):
-    job_description: str
-    resume: Optional[str] = None  # if omitted, falls back to the demo résumé
+    job_description: str = Field(min_length=1, max_length=20_000)
+    resume: Optional[str] = Field(default=None, max_length=50_000)  # omitted -> the demo résumé
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -57,11 +59,12 @@ def run(req: RunRequest) -> JSONResponse:
     resume = (req.resume or "").strip() or DEFAULT_RESUME
     agent = JobHuntAgent(
         build_llm(settings),
-        Toolbox(resume, ROLES, str(ROOT / "outputs")),
+        Toolbox(resume, ROLES, output_dir=None),  # in memory only: never persist a visitor's résumé
         settings.max_steps,
     )
     result = agent.run(req.job_description)
-    return JSONResponse(result.to_dict())
+    model = settings.model if settings.mode == "live" else "mock (scripted, not a model)"
+    return JSONResponse({**result.to_dict(), "mode": settings.mode, "model": model})
 
 
 def _extract_text(filename: str, data: bytes) -> str:

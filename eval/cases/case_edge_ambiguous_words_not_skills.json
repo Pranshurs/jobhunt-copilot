@@ -1,0 +1,20 @@
+{
+  "id": "edge_ambiguous_words_not_skills",
+  "resume_path": "data/sample_resumes/jane_doe_data_analyst.md",
+  "job_description": "Data Analyst at Northwind. You'll go the extra mile with SQL and Python, and rest assured we'll support you.",
+  "expectations": {
+    "required_keywords": [
+      "SQL",
+      "Python"
+    ],
+    "forbidden_claims": [],
+    "must_include_sections": [
+      "tailored_resume",
+      "cover_letter",
+      "role_matches"
+    ],
+    "min_role_matches": 1,
+    "coverage_threshold": 1.0
+  },
+  "note": "'go' and 'rest' are ordinary words here; claiming Go or REST would be unsupported."
+}

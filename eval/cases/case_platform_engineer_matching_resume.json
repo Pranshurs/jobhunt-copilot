@@ -1,0 +1,25 @@
+{
+  "id": "platform_engineer_matching_resume",
+  "resume_path": "data/sample_resumes/sam_rivera_platform.md",
+  "job_description": "Platform Engineer at Initech. Operate Kubernetes on AWS, write services in Go, own CI/CD and Postgres.",
+  "expectations": {
+    "required_keywords": [
+      "Kubernetes",
+      "AWS",
+      "Go",
+      "CI/CD",
+      "Postgres"
+    ],
+    "forbidden_claims": [
+      "PhD",
+      "Google"
+    ],
+    "must_include_sections": [
+      "tailored_resume",
+      "cover_letter",
+      "role_matches"
+    ],
+    "min_role_matches": 1,
+    "coverage_threshold": 0.8
+  }
+}

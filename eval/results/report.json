@@ -1,42 +1,159 @@
 {
-  "generated_at": "2026-06-07T08:20:40.254094+00:00",
+  "generated_at": "2026-10-03T19:06:50.952832+00:00",
   "mode": "mock",
-  "model": "mock",
-  "n_cases": 3,
+  "model": "scripted policy, not a model",
+  "n_cases": 11,
+  "n_passed": 11,
   "task_success_rate": 1.0,
   "task_success_ci95": [
-    0.438,
+    0.741,
     1.0
   ],
   "avg_keyword_coverage": 1.0,
-  "grounding_pass_rate": 1.0,
+  "grounding_failures": 0,
   "cases": [
     {
       "id": "ai_engineer_rag",
+      "status": "submitted",
       "keyword_coverage": 1.0,
       "coverage_pass": true,
       "grounding_pass": true,
       "structure_pass": true,
+      "unsupported_skills": [],
+      "forbidden_hits": [],
       "task_success": true,
-      "steps": 4
+      "steps": 4,
+      "tool_errors": 0
     },
     {
       "id": "applied_ai_agents",
+      "status": "submitted",
       "keyword_coverage": 1.0,
       "coverage_pass": true,
       "grounding_pass": true,
       "structure_pass": true,
+      "unsupported_skills": [],
+      "forbidden_hits": [],
       "task_success": true,
-      "steps": 4
+      "steps": 4,
+      "tool_errors": 0
     },
     {
       "id": "ai_automation_engineer",
+      "status": "submitted",
       "keyword_coverage": 1.0,
       "coverage_pass": true,
       "grounding_pass": true,
       "structure_pass": true,
+      "unsupported_skills": [],
+      "forbidden_hits": [],
       "task_success": true,
-      "steps": 4
+      "steps": 4,
+      "tool_errors": 0
+    },
+    {
+      "id": "data_analyst_matching_resume",
+      "status": "submitted",
+      "keyword_coverage": 1.0,
+      "coverage_pass": true,
+      "grounding_pass": true,
+      "structure_pass": true,
+      "unsupported_skills": [],
+      "forbidden_hits": [],
+      "task_success": true,
+      "steps": 4,
+      "tool_errors": 0
+    },
+    {
+      "id": "edge_ambiguous_words_not_skills",
+      "status": "submitted",
+      "keyword_coverage": 1.0,
+      "coverage_pass": true,
+      "grounding_pass": true,
+      "structure_pass": true,
+      "unsupported_skills": [],
+      "forbidden_hits": [],
+      "task_success": true,
+      "steps": 4,
+      "tool_errors": 0
+    },
+    {
+      "id": "edge_empty_job_description",
+      "status": "invalid_input",
+      "keyword_coverage": null,
+      "coverage_pass": true,
+      "grounding_pass": true,
+      "structure_pass": true,
+      "unsupported_skills": [],
+      "forbidden_hits": [],
+      "task_success": true,
+      "steps": 0,
+      "tool_errors": 0
+    },
+    {
+      "id": "edge_no_skill_overlap",
+      "status": "submitted",
+      "keyword_coverage": 1.0,
+      "coverage_pass": true,
+      "grounding_pass": true,
+      "structure_pass": true,
+      "unsupported_skills": [],
+      "forbidden_hits": [],
+      "task_success": true,
+      "steps": 4,
+      "tool_errors": 0
+    },
+    {
+      "id": "edge_other_candidate_no_author_leak",
+      "status": "submitted",
+      "keyword_coverage": 1.0,
+      "coverage_pass": true,
+      "grounding_pass": true,
+      "structure_pass": true,
+      "unsupported_skills": [],
+      "forbidden_hits": [],
+      "task_success": true,
+      "steps": 4,
+      "tool_errors": 0
+    },
+    {
+      "id": "edge_prompt_injection_in_jd",
+      "status": "submitted",
+      "keyword_coverage": 1.0,
+      "coverage_pass": true,
+      "grounding_pass": true,
+      "structure_pass": true,
+      "unsupported_skills": [],
+      "forbidden_hits": [],
+      "task_success": true,
+      "steps": 4,
+      "tool_errors": 0
+    },
+    {
+      "id": "edge_skill_gap_must_not_fabricate",
+      "status": "submitted",
+      "keyword_coverage": 1.0,
+      "coverage_pass": true,
+      "grounding_pass": true,
+      "structure_pass": true,
+      "unsupported_skills": [],
+      "forbidden_hits": [],
+      "task_success": true,
+      "steps": 4,
+      "tool_errors": 0
+    },
+    {
+      "id": "platform_engineer_matching_resume",
+      "status": "submitted",
+      "keyword_coverage": 1.0,
+      "coverage_pass": true,
+      "grounding_pass": true,
+      "structure_pass": true,
+      "unsupported_skills": [],
+      "forbidden_hits": [],
+      "task_success": true,
+      "steps": 4,
+      "tool_errors": 0
     }
   ]
 }

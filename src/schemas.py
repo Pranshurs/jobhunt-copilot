@@ -29,6 +29,7 @@ class ToolCallTrace:
     name: str
     arguments: dict[str, Any]
     summary: str = ""
+    ok: bool = True        # False when the tool returned an error to the model
 
 
 @dataclass
@@ -40,6 +41,8 @@ class ApplicationResult:
     keywords: list[str] = field(default_factory=list)
     trace: list[ToolCallTrace] = field(default_factory=list)
     steps_used: int = 0
+    status: str = "submitted"  # see src/agent.py for the full set of end states
+    error: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)

@@ -1,220 +1,140 @@
-# JobHunt Copilot 🎯
+# JobHunt Copilot
 
-**An AI agent that tailors your job application — and an evaluation harness that proves it works.**
+[![tests](https://github.com/Pranshurs/jobhunt-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/Pranshurs/jobhunt-copilot/actions/workflows/ci.yml)
 
-[![tests](https://github.com/Pranshurs/jobhunt-copilot/actions/workflows/ci.yml/badge.svg)](https://github.com/Pranshurs/jobhunt-copilot/actions/workflows/ci.yml) &nbsp;·&nbsp; **Live demo → [jobhunt.ylemis.com](https://jobhunt.ylemis.com)**
+A small tool-calling agent that tailors a résumé and cover letter to one job description
+and suggests similar roles. It comes with an evaluation harness that checks the output
+only claims what the candidate's résumé supports.
 
-Most "AI agent" demos look impressive and quietly hallucinate. This project is the opposite: a tool-using agent that tailors a resume, drafts a cover letter, and finds matching roles — wrapped in an **evaluation harness that scores task success, keyword coverage, and grounding** across a suite of test cases, with a Wilson confidence interval on the result.
+**Status.** This is a small, self-contained project. There's no hosted demo; run it locally
+(below). **No live-model evaluation has been run.** The
+committed eval results come from the offline scripted mock, which tests the pipeline and
+the harness, not model quality.
 
-> Building agents is common. *Measuring* whether they work is rare. This repo does both.
-
-- 🤖 **Agentic** — a real tool-calling loop (read → analyse → search → submit)
-- 📊 **Evaluated** — automated task-success scoring + hallucination/grounding checks
-- 🆓 **Runs with zero setup** — offline mock mode means no API key, no cost, no network
-- 🔌 **Provider-agnostic** — Groq, OpenAI, OpenRouter, or local Ollama via one env var
-- 🚀 **Deployable** — FastAPI web demo + Dockerfile, ready for a VPS
-
----
-
-## Why this exists
-
-I build AI systems and I evaluate them. I ran LLM reasoning evaluation at Outlier and
-built statistical rigour into a full ML research platform. This project turns that edge
-into something you can run: an agent whose quality is **measured, not asserted.**
-
----
-
-## Architecture
+## How it works
 
 ```
-            ┌──────────────────────────────────────────────────────────┐
-            │                      JobHunt Agent                        │
-   Job      │                                                          │
-Description ─┼──►  LLM loop  ──►  decides which tool to call next        │
- + Resume   │        ▲                     │                            │
-            │        │                     ▼                            │
-            │        │      ┌───────────────────────────────┐           │
-            │        └──────┤ Tools                          │           │
-            │  tool results │  • read_resume                 │           │
-            │               │  • extract_keywords            │           │
-            │               │  • search_roles (retrieval)    │           │
-            │               │  • submit_application (action) │           │
-            │               └───────────────────────────────┘           │
-            └───────────────────────────┬──────────────────────────────┘
-                                         │
-                                         ▼
-                        Tailored resume · Cover letter · Role matches
-                                         │
-                                         ▼
-            ┌──────────────────────────────────────────────────────────┐
-            │  Evaluation harness  (the differentiator)                 │
-            │  test cases ─► run agent ─► score:                        │
-            │     • keyword coverage   • grounding / hallucination      │
-            │     • structure          ─► task-success rate ± 95% CI    │
-            └──────────────────────────────────────────────────────────┘
+job description ──► agent loop (src/agent.py) ──► LLM picks a tool ──► Toolbox.dispatch
+                         ▲                                                   │
+                         └─────────── tool result or typed error ◄───────────┘
+tools: read_resume · extract_keywords · search_roles · submit_application (terminal, once)
 ```
 
-The agent and the eval share the same code path, so the harness measures *exactly* what
-ships. Swapping the LLM provider (or running fully offline) changes nothing about how it's scored.
+- **Typed tool contracts.** Each tool's arguments are a pydantic model (`src/tools.py`),
+  and the JSON schemas sent to the model are generated from those models. An unknown tool,
+  invalid or non-JSON arguments, a second submit, or a tool that raises is returned to the
+  model as `{"error": {"type", "message"}}`, so it can correct itself. None of these crash
+  the loop.
+- **Grounding help.** `extract_keywords` splits the job's requirements into
+  `matched_in_resume` and `not_in_resume`, and the system prompt forbids claiming the
+  latter.
+- **Explicit end state.** Every run ends with exactly one `status`:
+  - `submitted` (the only success)
+  - `max_steps_exceeded`
+  - `stopped_without_submitting`
+  - `llm_error` (after the client's timeout and retries)
+  - `invalid_input`
+- **Providers.** Any OpenAI-compatible Chat Completions endpoint works: Groq, OpenAI,
+  OpenRouter or local Ollama. With no `LLM_API_KEY`, it runs a deterministic offline
+  **mock**. The mock is a scripted policy, not a model. It writes only skills found in both
+  the job description and the résumé, and every output says which mode produced it.
 
----
-
-## Quickstart (no API key needed)
+## Quick start (offline, no key)
 
 ```bash
 git clone https://github.com/Pranshurs/jobhunt-copilot.git && cd jobhunt-copilot
 python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
+python run.py --jd data/sample_jds/ai_engineer.txt
+python run.py --jd "Data Analyst at Brightside. SQL, Python, pandas." --resume data/sample_resumes/jane_doe_data_analyst.md
+```
 
-# Run the agent on a sample job description (offline mock mode):
+The result is written to `outputs/`. The CLI exits 1 unless the application was submitted.
+
+## Use a real model
+
+```bash
+cp .env.example .env   # set LLM_API_KEY, LLM_BASE_URL and LLM_MODEL (examples inside)
 python run.py --jd data/sample_jds/ai_engineer.txt
 ```
 
-You'll get a tailored resume, a grounded cover letter, and ranked role matches — saved to `outputs/`.
+`LLM_TIMEOUT_S` and `LLM_MAX_RETRIES` bound each request. `AGENT_MAX_STEPS` bounds the loop.
 
-### Web demo
-
-```bash
-uvicorn app:app --reload
-# open http://localhost:8000 → paste your résumé (or upload a PDF/DOCX) + a JD → "Tailor my application"
-```
-
-### Live LLM mode
+## Web app
 
 ```bash
-cp .env.example .env          # then set LLM_API_KEY (Groq has a free tier)
-python run.py --jd data/sample_jds/ai_engineer.txt
+uvicorn app:app --reload   # http://localhost:8000: paste or upload a résumé, paste a JD
 ```
 
-The app speaks the OpenAI-compatible API, so the same code runs against **Groq, OpenAI,
-OpenRouter, Together, or a local Ollama** — you only change `LLM_BASE_URL` and `LLM_MODEL`.
+`POST /api/run` takes `{"job_description", "resume"?}`. It caps input sizes (422 if
+exceeded), returns `status`, `mode` and `model`, and keeps the résumé in memory. Nothing is
+written to the server's disk.
 
----
-
-## Evaluation
-
-```bash
-python -m eval.run_eval
-```
-
-Sample run (offline mock mode, 3 cases):
-
-```
-==================================================================
- JobHunt Copilot — Evaluation  (mock / mock)
-==================================================================
-case                          success   coverage   ground   struct
-------------------------------------------------------------------
-ai_engineer_rag               PASS         100%    ok       ok
-applied_ai_agents             PASS         100%    ok       ok
-ai_automation_engineer        PASS         100%    ok       ok
-------------------------------------------------------------------
- Task-success rate: 100%  (95% CI 44–100%, n=3)
- Avg keyword coverage: 100%   |   Grounding pass rate: 100%
-==================================================================
-```
-
-Each case (`eval/cases/*.json`) declares its own expectations, and the harness scores three things:
-
-| Metric | What it checks | How |
-|---|---|---|
-| **Keyword coverage** | Did the application surface the job's key requirements? | fraction of required keywords present, vs. a threshold |
-| **Grounding** | Did it avoid claims the candidate can't back up? | none of the `forbidden_claims` appear (hallucination guard) |
-| **Structure** | Is the deliverable complete? | tailored resume + cover letter present, ≥ N roles matched |
-
-`task_success` is the AND of all three. The reported success rate ships with a **Wilson
-score 95% confidence interval** — because a point estimate over a handful of cases without
-an interval is misleading (note how wide `44–100%` correctly is at n=3). Results are written
-to `eval/results/report.json` and `report.md`.
-
----
-
-## How the agent works
-
-The loop (`src/agent.py`) hands the LLM a set of tools (`src/tools.py`) and lets it decide
-what to call, in OpenAI function-calling format:
-
-1. `read_resume` — load the candidate's real resume (ground truth)
-2. `extract_keywords` — pull must-have skills from the job description
-3. `search_roles` — retrieve & rank similar open roles by skill overlap
-4. `submit_application` — the terminal action: tailored resume + cover letter, persisted to disk
-
-Every step is recorded in a trace for transparency. The offline `MockLLM` deterministically
-simulates this exact sequence, which is what makes the project runnable — and testable in CI —
-with no key or cost.
-
----
-
-## Project structure
-
-```
-jobhunt-copilot/
-├── run.py                  # CLI entry point
-├── app.py                  # FastAPI server (the live demo)
-├── templates/index.html    # single-page demo UI
-├── src/
-│   ├── config.py           # env-driven settings (auto mock/live)
-│   ├── schemas.py          # typed data structures
-│   ├── llm.py              # LiveLLM (OpenAI-compatible) + offline MockLLM
-│   ├── tools.py            # the agent's tools + OpenAI tool schemas
-│   ├── agent.py            # the tool-calling loop
-│   └── prompts.py          # system prompt
-├── eval/
-│   ├── metrics.py          # coverage, grounding, structure, Wilson CI
-│   ├── run_eval.py         # runner + JSON/Markdown report
-│   └── cases/*.json        # test cases with expectations
-├── data/
-│   ├── resume.md           # candidate profile (replace with your own)
-│   ├── roles.json          # sample roles database
-│   └── sample_jds/*.txt    # example job descriptions
-├── tests/                  # pytest suite (tools, metrics, agent e2e)
-├── Dockerfile
-└── requirements.txt
-```
-
----
-
-## Testing
+## Tests and evaluation
 
 ```bash
 pip install -r requirements-dev.txt
-pytest -q          # 12 tests: tools, metrics, and an end-to-end agent run
+pytest -q                                   # 47 tests: contracts, agent end states, API, harness
+python -m eval.run_eval                     # the configured LLM (mock unless LLM_API_KEY is set)
+python -m eval.run_eval --self-check        # known-bad policies must fail their cases
 ```
 
----
+Each case in `eval/cases/` names a résumé, a job description and its expectations. A case
+passes when all of the following hold:
+- **Submitted.** The run ends `submitted`, or the case's `expected_status` if it sets one.
+- **Grounded.** No vocabulary skill appears in the output that the source résumé lacks, and
+  none of the case's forbidden phrases appear.
+- **Covered.** Enough of the required keywords appear in the output.
 
-## Deployment (Docker on a VPS)
+There are 11 cases. Five are normal applications across three candidates; two of those
+candidates are fictional samples. Six are edge or failure cases:
+- a skill gap that must not be fabricated
+- a prompt injection inside the job description
+- another candidate's résumé, which must not leak the default one
+- no skill overlap
+- ordinary words that look like skills ("go", "rest")
+- an empty job description
+
+Committed results ([`eval/results/`](eval/results/)):
+
+| Run | Passed | What it shows |
+|---|---|---|
+| Mock (scripted) | 11/11 | The pipeline and harness work end to end. Says nothing about model quality. |
+| Self-check: `fabricating` (the old mock's behaviour) | fails 8/11, all on grounding | The grounding check catches invented skills and copied facts. |
+| Self-check: `never_submit` | fails 10/11, all `max_steps_exceeded` | A run that never submits can't pass. |
+| Self-check: `injection_following` | fails 1/11 (the injection case) | Obeying instructions inside a job description is caught. |
+
+To evaluate a model, set `LLM_API_KEY` and run `python -m eval.run_eval`. The report
+records the mode and model.
+
+**Limits of the harness.** The grounding check is lexical. It only knows the skills in
+`SKILL_VOCAB` (`src/tools.py`), so an invented employer or metric is caught only if a case
+lists it as a forbidden phrase. A cover letter that merely *mentions* a skill the candidate
+lacks also counts as a claim. Keyword coverage includes the full résumé that the mock
+appends. With 11 cases, the confidence intervals are wide.
+
+## Docker
 
 ```bash
-docker build -t jobhunt-copilot .
-docker run -d --name jobhunt -p 8000:8000 \
-  -e LLM_API_KEY=your_key -e LLM_BASE_URL=https://api.groq.com/openai/v1 \
-  -e LLM_MODEL=llama-3.3-70b-versatile \
-  jobhunt-copilot
+docker build -t jobhunt-copilot . && docker run -p 8000:8000 -e LLM_API_KEY=... jobhunt-copilot
 ```
 
-Behind a reverse proxy (Traefik/Caddy/nginx) you get automatic HTTPS on a subdomain.
-**Live demo:** https://jobhunt.ylemis.com
+`.dockerignore` keeps `.env` out of the image. The image wasn't built as part of the
+latest changes.
 
----
+## Layout
 
-## Roadmap
+```
+run.py, app.py        CLI and FastAPI app
+src/                  agent loop, tools + contracts, LLM clients (live + mock), config
+eval/                 metrics, cases, runner, known-bad policies for the self-check
+data/                 default résumé, fictional sample résumés, sample roles and JDs
+tests/                pytest suite
+```
 
-This is project 1 of a small, focused portfolio:
+`data/resume.md` is the author's résumé and the default profile. `data/roles.json` is
+sample data.
 
-1. **JobHunt Copilot** — agent + evaluation *(this repo)*
-2. **RAG that measures itself** — retrieval-quality scoring + citation/hallucination checks
-3. **LLM evaluation toolkit** — run prompts across models, score reasoning/math/grounding
+## License
 
----
-
-## Notes
-
-The web app and API accept **any résumé** — paste text or upload a PDF/DOCX/TXT. `data/resume.md`
-is just the default profile used when none is supplied. The roles database is sample data; swapping
-in a real job-board feed (or a live search tool) is a natural next step.
-
-## Author
-
-**Pranshu Raj** — AI/ML Engineer, Gurgaon, India
-GitHub: `github.com/Pranshurs` · Email: pranshu.rs08@gmail.com
+MIT

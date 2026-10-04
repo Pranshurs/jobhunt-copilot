@@ -42,7 +42,9 @@ def main() -> None:
     agent = JobHuntAgent(build_llm(settings), Toolbox(resume, roles, args.out), settings.max_steps)
     result = agent.run(job_description)
 
-    print(f"\n=== JobHunt Copilot  ({settings.mode} mode) ===")
+    label = settings.model if settings.mode == "live" else "scripted mock, not a model"
+    print(f"\n=== JobHunt Copilot  ({settings.mode} mode: {label}) ===")
+    print(f"Status      : {result.status}" + (f"  ({result.error})" if result.error else ""))
     print(f"Target      : {result.job_title}")
     print(f"Keywords    : {', '.join(result.keywords[:12]) or '-'}")
     print(f"Steps used  : {result.steps_used}")
@@ -52,11 +54,14 @@ def main() -> None:
 
     print("\n--- Cover letter (preview) ---")
     print("\n".join(result.cover_letter.splitlines()[:6]))
-    print(f"\nTailored application saved under: {args.out}/")
+    if result.status == "submitted":
+        print(f"\nTailored application saved under: {args.out}/")
 
     if args.json:
         print("\n--- Full result (JSON) ---")
         print(json.dumps(result.to_dict(), indent=2, default=str))
+
+    raise SystemExit(0 if result.status == "submitted" else 1)
 
 
 if __name__ == "__main__":
